@@ -93,8 +93,9 @@ def fitness(individual, fieldProps):
     turn = 0
     field = generate_field(fieldProps)
 
-    first_two_positions = positions[:2]
-    # position=positions[0]
+    first_two_positions = positions[:7]
+    # for position in positions:
+    # counter=0
     for position in first_two_positions:
         if field[position[1]][position[0]] != 0:
             continue
@@ -106,8 +107,10 @@ def fitness(individual, fieldProps):
 
         next_col = position[0] + Directions[direction][1]
         next_row = position[1] + Directions[direction][0]
-        print(direction)
-        print(next_row,next_col)
+
+        # counter += 1
+        # print(direction,counter)
+        # print(next_row,next_col)
         while True:
             if is_edge(next_row, next_col, width, high):
                 step += 1
@@ -115,6 +118,7 @@ def fitness(individual, fieldProps):
             if can_move(next_row, next_col, field):
                 position=(next_col,next_row)
                 field[position[1]][position[0]] = step
+                individual["fitness"] += 1
                 next_col = position[0] + Directions[direction][1]
                 next_row = position[1] + Directions[direction][0]
             else:
@@ -130,23 +134,101 @@ def fitness(individual, fieldProps):
                     break
 
     print_mas(field,10,12)
+    return individual
+def SelectionTheBest(population, bestPersonRatio): #the best individuals from the current generation and carry them over to the next generation.
+    sorted_population = sorted(population, key=lambda individual: individual["fitness"], reverse=True)
+    return sorted_population[:int(len(population) * bestPersonRatio)]
 
+def selection(population, selection_function, desired_amount):
+    return selection_function(population, desired_amount)
+def roulette(population, desire_amount):
+    new_population = random.choices(population, weights=[individual["fitness"] for individual in population], k=desire_amount)
+    return new_population
+
+def crossover(population, crossover_function):
+    return [child for i in range(0, len(population) - 1, 2) for child in
+            crossover_function(population[i], population[i + 1])]
+def singlePointCrossover(parent1, parent2):
+    positionPoint = random.randint(0, len(parent1['positions'])-1)
+    turnsPoint = random.randint(0, len(parent1['turns'])-1)
+    offspring1={
+        'positions': parent1['positions'][:positionPoint]+parent2['positions'][positionPoint:],
+        'turns': parent1['turns'][:turnsPoint]+parent2['turns'][turnsPoint:],
+        'fitness': 0
+    }
+    offspring2={
+        'positions': parent2['positions'][:positionPoint]+parent1['positions'][positionPoint:],
+        'turns': parent2['turns'][:turnsPoint]+parent1['turns'][turnsPoint:],
+        'fitness': 0
+    }
+    return offspring1, offspring2
+def mutation(population, mutationRate,fieldProps):
+    newPopulation=copy.deepcopy(population)
+    return [mutate(individual,mutationRate,fieldProps)for individual in newPopulation]
+def mutate(individual,mutationRate,fieldProps):
+    for i in range(len(individual['positions'])):
+        if random.random()<mutationRate:
+            result = None
+            while not result:
+                result = genereteStartPosition(fieldProps,individual['positions'])
+            pos1, pos2=result
+            individual['positions'][i] = pos1 if random.randint(0,1) == 0 else pos2
+    for i in range(len(individual['turns'])):
+        if random.random()<mutationRate:
+            individual['turns'][i] = 'right' if random.randint(0,1) == 0 else 'left'
+    return individual
 def main():
     fitnesses = []
     populations = []
-    population = initialize(fieldProps, 1)
-    for i in range(1):
+    population = initialize(fieldProps, population_size)
+    for i in range(3):
         print(f'{population[i]}')
 
-    populations.append(evaluation(population, fieldProps))
+    a=1
+    while a:
+        populations.append(evaluation(population, fieldProps))
+        fitnesses.append(max(populations[-1], key=lambda individual: individual["fitness"])["fitness"]) # function is used to find the individual with the highest fitness in the latest population
+        if len(populations) == amountOfGenerations:
+            break
+        if fitnesses[-1] == fieldProps[0] * fieldProps[1] - len(fieldProps[2]):
+            break
+
+        future_population = copy.deepcopy(populations[-1])
+
+        new_population = SelectionTheBest(population, bestPersonRatio)
+
+        future_population = selection(future_population, selection_function, int((population_size * offspring_factor)))
+
+        future_population = crossover(future_population, crossover_function)
+
+        new_population += mutation(future_population, mutation_rate, fieldProps)
+
+        new_population += initialize(fieldProps, population_size - len(new_population))
+
+        population = new_population
+
+        print(populations)
+        print(fitnesses)
+        a=0
+
+    print(f"Best fitness over {len(populations)} generations: {max(fitnesses)}")
+    with open("results", "a") as myfile:
+        myfile.write(f'Best fitness over {len(populations)} generations: {max(fitnesses)}' + "\n")
 
 
 
 
 
-
-invalidPositions = ((0, 0), (11, 9), (0, 9), (11, 0))
 width=12
 high=10
+
+mutation_rate = 0.10
+population_size = 4
+offspring_factor = 3 / 4
+selection_function = roulette
+crossover_function = singlePointCrossover
+invalidPositions = ((0, 0), (11, 9), (0, 9), (11, 0))
+amountOfGenerations = 100
+bestPersonRatio = 0.05
 fieldProps = (12, 10, [(1, 2), (2, 4), (4, 3), (5, 1), (8, 6), (9, 6)])
 main()
