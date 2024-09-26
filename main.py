@@ -1,7 +1,7 @@
 import copy
 import random
 
-def cdirection(pos):
+def cdirection(pos): #from which side it starts then in the opposite direction moves
     if pos[0] == 0:
         return 'right'
     elif pos[0] == 11:
@@ -11,13 +11,13 @@ def cdirection(pos):
     else:
         return 'up'
 
-Directions = {
+Directions = { #player movement in which direction
     "up": (-1, 0),   # Move up (row decreases)
     "down": (1, 0),  # Move down (row increases)
     "left": (0, -1), # Move left (column decreases)
     "right": (0, 1)  # Move right (column increases)
 }
-turn_table = {
+turn_table = {#turn the player if he hits an obstacle
     "left": {
         "right": "up",
         "left": "down",
@@ -46,9 +46,9 @@ def print_mas(arr, b, k):
             print(f'{arr[i][j]:>3}', end='')
         print()
 
-def initialize(fieldProps, populationSize):
+def initialize(fieldProps, populationSize): #gene initialization
     return [generateGenes(fieldProps) for i in range(populationSize)]
-def generateGenes(fieldProps):
+def generateGenes(fieldProps): #gene generetion
     pos = []
     turns = []
     high,width,stones = fieldProps
@@ -65,7 +65,7 @@ def generateGenes(fieldProps):
 
     return {'positions': pos, 'turns': turns, 'fitness': 0}
 
-def genereteStartPosition(fieldProps, pos):
+def genereteStartPosition(fieldProps, pos):#generetion start position for genes
     lenght, width, unnecessaryStones =fieldProps
     pos1 = (random.randint(0,1) * (lenght - 1), random.randint(0, width - 1)) #left or right position
     pos2 = (random.randint(0,lenght-1), random.randint(0,1)*(width-1)) #top or bottom position
@@ -79,13 +79,13 @@ def genereteStartPosition(fieldProps, pos):
 
     return pos1,pos2
 
-def evaluation(population, fieldProps):
+def evaluation(population, fieldProps): #evaluation of population (fitness)
     newPopulation=copy.deepcopy(population)
     return [fitness(individual,fieldProps) for individual in newPopulation]
 
-def can_move(row, col, map):
+def can_move(row, col, map): # checks whether he can go on
     return (0 <= row < len(map) and 0 <= col < len(map[0]) and map[row][col] == 0)
-def is_edge(row, col, width, high):
+def is_edge(row, col, width, high): #checks if player went over the card
     return row == -1 or row == high or col == -1 or col == width
 def fitness(individual, fieldProps):
     positions, turns, fitness = individual.values()
@@ -135,17 +135,17 @@ def fitness(individual, fieldProps):
 
     print_mas(field,10,12)
     return individual
-def SelectionTheBest(population, bestPersonRatio): #the best individuals from the current generation and carry them over to the next generation.
+def SelectionTheBest(population, bestPersonRatio): #sorts populations by the best fitness
     sorted_population = sorted(population, key=lambda individual: individual["fitness"], reverse=True)
     return sorted_population[:int(len(population) * bestPersonRatio)]
 
-def selection(population, selection_function, desired_amount):
+def selection(population, selection_function, desired_amount): #roulette or tournament
     return selection_function(population, desired_amount)
-def roulette(population, desire_amount):
+def roulette(population, desire_amount):#the best individuals from the current generation and carry them over to the next generation.
     new_population = random.choices(population, weights=[individual["fitness"] for individual in population], k=desire_amount)
     return new_population
 
-def crossover(population, crossover_function):
+def crossover(population, crossover_function):#singlePointCrossover or uniformCrossover
     return [child for i in range(0, len(population) - 1, 2) for child in
             crossover_function(population[i], population[i + 1])]
 def singlePointCrossover(parent1, parent2):
@@ -162,7 +162,7 @@ def singlePointCrossover(parent1, parent2):
         'fitness': 0
     }
     return offspring1, offspring2
-def mutation(population, mutationRate,fieldProps):
+def mutation(population, mutationRate,fieldProps):#return mutated populations
     newPopulation=copy.deepcopy(population)
     return [mutate(individual,mutationRate,fieldProps)for individual in newPopulation]
 def mutate(individual,mutationRate,fieldProps):
@@ -177,6 +177,50 @@ def mutate(individual,mutationRate,fieldProps):
         if random.random()<mutationRate:
             individual['turns'][i] = 'right' if random.randint(0,1) == 0 else 'left'
     return individual
+def tournament(population, desiredAmount): #none use
+    newPopulation=[]
+    while len (newPopulation)<desiredAmount:
+        selected=random.sample(population,3)
+        newPopulation.append(max(selected, key=lambda individual: individual['fitness']))
+    return newPopulation
+def uniformCrossover(parent1,parent2): #none use
+    positionMask=[random.randint(0,1) for i in range(len(parent1['positions']))]
+    turnMask=[random.randint(0,1)for i in range(len(parent1['turns']))]
+
+    position1=[]
+    position2=[]
+
+    turns1=[]
+    turns2=[]
+
+    for i,bit in enumerate(positionMask):
+        if bit==0:
+            position1.append(parent1['positions'][i])
+            position2.append(parent2['positions'][i])
+        else:
+            position1.append(parent2['positions'][i])
+            position2.append(parent1['positions'][i])
+
+    for i,bit in enumerate(turnMask):
+        if bit==0:
+            turns1.append(parent1['turns'][i])
+            turns2.append(parent2['turns'][i])
+        else:
+            turns1.append(parent2['turns'][i])
+            turns2.append(parent1['turns'][i])
+
+    offspring1={
+        'positions':position1,
+        'turns': turns1,
+        'fitness': 0
+    }
+    offspring2={
+        'positions': position2,
+        'turns': turns2,
+        'fitness': 0
+    }
+    return offspring1,offspring2
+
 def main():
     fitnesses = []
     populations = []
@@ -232,3 +276,5 @@ amountOfGenerations = 100
 bestPersonRatio = 0.05
 fieldProps = (12, 10, [(1, 2), (2, 4), (4, 3), (5, 1), (8, 6), (9, 6)])
 main()
+#tournament()
+#uniformCrossover()
