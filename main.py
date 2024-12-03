@@ -43,11 +43,11 @@ class MLPRegressor(nn.Module):
     def __init__(self):
         super(MLPRegressor, self).__init__()
         self.model = nn.Sequential(
-            nn.Linear(8, 64),  # 8 ознак у вхідних даних
+            nn.Linear(8, 64),
             nn.ReLU(),
             nn.Linear(64, 32),
             nn.ReLU(),
-            nn.Linear(32, 1)  # 1 вихід (ціна)
+            nn.Linear(32, 1)
         )
 
     def forward(self, x):
@@ -94,7 +94,7 @@ def run_experiment(optimizer_name):
     elif optimizer_name == 'SGD with Momentum':
         optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
     elif optimizer_name == 'Adam':
-        optimizer = optim.Adam(model.parameters(), lr=0.01)
+        optimizer = optim.Adam(model.parameters(), lr=0.001)
 
     print(f"\nTraining with {optimizer_name} optimizer...")
     train_losses, test_losses = train_model(model, optimizer, criterion, train_loader, test_loader, epochs)
