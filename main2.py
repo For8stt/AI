@@ -2,13 +2,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-class Sigmoid:
+class Sigmoid:#Aktivačná funkcia
     @staticmethod
-    def forward(x):
+    def forward(x):#hodnota funkcie
         return 1 / (1 + np.exp(-x))
 
     @staticmethod
-    def backward(x):
+    def backward(x):#derivácia
         sig = Sigmoid.forward(x)
         return sig * (1 - sig)
 
@@ -39,16 +39,16 @@ class Linear:
         self.bias = np.zeros(output_size)
         self.input = None
         self.output = None
-        self.velocity_w = np.zeros_like(self.weights)
+        self.velocity_w = np.zeros_like(self.weights) # momentum
         self.velocity_b = np.zeros_like(self.bias)
 
-    def forward(self, x):
+    def forward(self, x):   #Vstupné údaje pre vrstvu
         self.input = x
         self.output = np.dot(x, self.weights) + self.bias
         return self.output
 
-    def backward(self, grad_output, learning_rate, momentum=0.9):
-        grad_input = np.dot(grad_output, self.weights.T)
+    def backward(self, grad_output, learning_rate, momentum=0.9): # gradienty a aktualizuje parametre vrstvy
+        grad_input = np.dot(grad_output, self.weights.T)#gradient   predbežné
         grad_weights = np.dot(self.input.T, grad_output)
         grad_bias = np.sum(grad_output, axis=0)
 
@@ -63,15 +63,15 @@ class Linear:
 
 class MSE:
     @staticmethod
-    def forward(y_pred, y_true):
+    def forward(y_pred, y_true):      #stredná kvadratická chyba
         return np.mean((y_pred - y_true) ** 2)
 
     @staticmethod
-    def backward(y_pred, y_true):
+    def backward(y_pred, y_true):      #výpočet gradientov chyby
         return 2 * (y_pred - y_true) / y_true.size
 
 class NeuralNetwork:
-    def __init__(self, input_size, hidden_sizes, output_size, activation='tanh'):
+    def __init__(self, input_size, hidden_sizes, output_size, activation='tanh'): #vrstvy
         self.layers = []
         self.activations = []
 
@@ -91,7 +91,7 @@ class NeuralNetwork:
         self.layers.append(Linear(prev_size, output_size))
         self.output_activation = Sigmoid()
 
-    def forward(self, x):
+    def forward(self, x): # výsledok prechodu vrstiev pomocou vrstiev a aktiváciu funkciu.
         self.inputs = [x]
         for layer, activation in zip(self.layers[:-1], self.activations):
             x = activation.forward(layer.forward(x))
@@ -100,7 +100,7 @@ class NeuralNetwork:
         self.inputs.append(x)
         return x
 
-    def backward(self, x, y, learning_rate, momentum=0.9):
+    def backward(self, x, y, learning_rate, momentum=0.9):#ziskania chyby, aktualizáciou váh a biasa. trénovanie neurónov
         grad = MSE.backward(self.inputs[-1], y) * self.output_activation.backward(self.inputs[-1])
         grad = self.layers[-1].backward(grad, learning_rate, momentum)
 

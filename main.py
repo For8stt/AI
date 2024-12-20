@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 
 
 
-data = fetch_california_housing()
+data = fetch_california_housing()#Sťahovanie a príprava.
 X, y = data.data, data.target
 
 scaler_X = StandardScaler()
@@ -22,7 +22,7 @@ y = scaler_y.fit_transform(y.reshape(-1, 1))
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-class HousingDataset(Dataset):
+class HousingDataset(Dataset):#uchovania
     def __init__(self, X, y):
         self.X = torch.tensor(X, dtype=torch.float32)
         self.y = torch.tensor(y, dtype=torch.float32)
@@ -33,13 +33,13 @@ class HousingDataset(Dataset):
     def __getitem__(self, idx):
         return self.X[idx], self.y[idx]
 
-train_dataset = HousingDataset(X_train, y_train)
+train_dataset = HousingDataset(X_train, y_train)#vytvorenie
 test_dataset = HousingDataset(X_test, y_test)
 
-train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
+train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True) #načítanie údajov zo súboru údajov
 test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False)
 
-class MLPRegressor(nn.Module):
+class MLPRegressor(nn.Module): #regresný model
     def __init__(self):
         super(MLPRegressor, self).__init__()
         self.model = nn.Sequential(
@@ -50,7 +50,7 @@ class MLPRegressor(nn.Module):
             nn.Linear(32, 1)
         )
 
-    def forward(self, x):
+    def forward(self, x):# údaje prechádzajú vrstu
         return self.model(x)
 
 def train_model(model, optimizer, criterion, train_loader, test_loader, epochs):
@@ -61,9 +61,9 @@ def train_model(model, optimizer, criterion, train_loader, test_loader, epochs):
         train_loss = 0.0
 
         for X_batch, y_batch in train_loader:
-            optimizer.zero_grad()
-            predictions = model(X_batch).squeeze()
-            loss = criterion(predictions, y_batch.squeeze())
+            optimizer.zero_grad() #čistí gradienty
+            predictions = model(X_batch).squeeze()#vypočíta predpoveď
+            loss = criterion(predictions, y_batch.squeeze()) # stratová funkcia
             loss.backward()
             optimizer.step()
             train_loss += loss.item()
