@@ -16,7 +16,7 @@ if __name__ == "__main__":
 preferences = {
     "population_size": 100,
     "mutation_rate": 0.04,
-    "elitism_rate": 0.01,
+    "elitism_rate": 0.02,
     "field_props": (12, 10, [(1, 2), (2, 4), (4, 3), (5, 1), (8, 6), (9, 6)]),
     "amount_of_generations": 100,
     "selection_function": "tournament",

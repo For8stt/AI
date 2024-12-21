@@ -1,8 +1,9 @@
 import copy
 import random
+
 width=0
 high=0
-invalidPositions = ((0, 0), (11, 9), (0, 9), (11, 0))
+invalidPositions = ((0, 0), (11, 9), (0, 9), (11, 0)) #does not start from the edges
 
 def cdirection(pos): #from which side it starts then in the opposite direction moves( z ktorej strany, v opačnom smere sa pohybuje  )
     if pos[0] == 0:
@@ -193,8 +194,9 @@ def fitness(individual, fieldProps):
         individual["fitness"] += plus
         field=fieldd
 
-    # if individual['fitness']==114 and angle == True:
-    #     print_mas(field, high, width)
+    #vypísať cestu, ak mních prešiel celú mapu
+    if individual['fitness']==114:
+         print_mas(field, high, width)
     return individual
 def SelectionTheBest(population, bestPersonRatio): #sorts populations by the best fitness
     sorted_population = sorted(population, key=lambda individual: individual["fitness"], reverse=True)
@@ -355,8 +357,8 @@ def main(preferences):
 
 preferences = {
     "population_size": 100,
-    "mutation_rate": 0.03,
-    "elitism_rate": 0.01,
+    "mutation_rate": 0.04,
+    "elitism_rate": 0.02,
     "field_props": (12, 10, [(1, 2), (2, 4), (4, 3), (5, 1), (8, 6), (9, 6)]),
     "amount_of_generations": 100,
     "selection_function": "tournament",
